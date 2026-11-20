@@ -166,6 +166,36 @@ class HIVEBrainEngine:
         finally:
             conn.close()
 
+    def bridge(self, action: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Unified multi-model bridge interface for HIVEBrain:
+        - action='sync': Ingests interaction, runs outbox fan-out, returns updated snapshot & latency.
+        - action='search': Multi-layer hybrid semantic search.
+        - action='reserve': Front-loaded atomic soft lease.
+        - action='status': Current 4-layer state overview.
+        - action='distill': 5-day continuous learning pass.
+        """
+        data = data or {}
+        if action == "sync":
+            prompt = data.get("prompt", "")
+            response = data.get("response", "")
+            agent_id = data.get("agent_id", "multi-model-bridge")
+            entities = data.get("entities", [])
+            if entities:
+                self.reserve(entities, agent_id=agent_id, ttl_ms=data.get("ttl_ms", 5000))
+            ingest_res = self.ingest(prompt, response, agent_id=agent_id, metadata=data.get("metadata"))
+            return {"status": "synced", "ingest": ingest_res, "bridge": "active"}
+        elif action == "search":
+            return self.query(query_text=data.get("query", ""), mode=data.get("mode", "hybrid"), limit=data.get("limit", 10))
+        elif action == "reserve":
+            return self.reserve(entity_ids=data.get("entities", []), agent_id=data.get("agent_id", "bridge"), ttl_ms=data.get("ttl_ms", 5000))
+        elif action == "status":
+            return self.status()
+        elif action == "distill":
+            return self.distill(days_threshold=data.get("days_threshold", 5), dry_run=data.get("dry_run", False))
+        else:
+            raise ValueError(f"Unknown bridge action: {action}")
+
 # MCP Protocol Implementation
 def handle_mcp_request(engine: HIVEBrainEngine, req: Dict[str, Any]) -> Dict[str, Any]:
     method = req.get("method")
@@ -244,6 +274,25 @@ def handle_mcp_request(engine: HIVEBrainEngine, req: Dict[str, Any]) -> Dict[str
                         "name": "brain_status",
                         "description": "Returns status and record counts across all 4 layers of the HIVEBrain Meta-Brain.",
                         "inputSchema": {"type": "object", "properties": {}}
+                    },
+                    {
+                        "name": "brain_bridge",
+                        "description": "Unified multi-model bridge interface for HIVEBrain. Enables any model (DeepSeek, Qwen, GPT, Codex) or agent (Herdr, Paperclip, OpenDots, OpenClaw) to sync, search, reserve, or inspect brain state in one unified call.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "action": {
+                                    "type": "string",
+                                    "enum": ["sync", "search", "reserve", "status", "distill"],
+                                    "description": "Bridge operation to execute."
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "description": "Payload dict for the operation (e.g. {prompt, response, agent_id, entities} for sync, {query, mode} for search)."
+                                }
+                            },
+                            "required": ["action"]
+                        }
                     }
                 ]
             }
@@ -282,6 +331,11 @@ def handle_mcp_request(engine: HIVEBrainEngine, req: Dict[str, Any]) -> Dict[str
                 )
             elif tool_name == "brain_status":
                 out = engine.status()
+            elif tool_name == "brain_bridge":
+                out = engine.bridge(
+                    action=args["action"],
+                    data=args.get("data")
+                )
             else:
                 return {
                     "jsonrpc": "2.0",
