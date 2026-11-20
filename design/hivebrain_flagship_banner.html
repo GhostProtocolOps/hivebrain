@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HIVEBrain Flagship Banner</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1600px;
+      height: 960px;
+      overflow: hidden;
+      background-color: #070A14;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      user-select: none;
+    }
+
+    /* Ambient Lighting Background */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 90% 70% at 50% 45%, black 40%, transparent 95%);
+    }
+
+    .ambient-glow-1 {
+      position: absolute;
+      top: -140px;
+      left: 15%;
+      width: 750px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(99, 102, 241, 0.12) 40%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .ambient-glow-2 {
+      position: absolute;
+      bottom: -120px;
+      right: 12%;
+      width: 800px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, rgba(14, 165, 233, 0.12) 40%, transparent 70%);
+      filter: blur(90px);
+      pointer-events: none;
+    }
+
+    .ambient-glow-3 {
+      position: absolute;
+      top: 380px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1100px;
+      height: 480px;
+      background: radial-gradient(ellipse, rgba(16, 185, 129, 0.1) 0%, transparent 65%);
+      filter: blur(75px);
+      pointer-events: none;
+    }
+
+    /* Header Container */
+    .header-container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 52px;
+    }
+
+    /* Top Badge */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 18px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 9999px;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      margin-bottom: 22px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+    }
+
+    .badge-text {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #94A3B8;
+    }
+
+    .badge-highlight {
+      color: #38BDF8;
+      font-weight: 800;
+    }
+
+    /* Brand Title */
+    .brand-title {
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 14px;
+      background: linear-gradient(180deg, #FFFFFF 10%, #E0E7FF 60%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-subtitle {
+      font-size: 22px;
+      font-weight: 500;
+      color: #94A3B8;
+      letter-spacing: 0.2px;
+      margin-bottom: 26px;
+    }
+
+    /* Feature Chips Bar */
+    .chips-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #CBD5E1;
+      backdrop-filter: blur(12px);
+    }
+
+    .chip-cyan {
+      border-color: rgba(56, 189, 248, 0.35);
+      color: #38BDF8;
+    }
+
+    .chip-purple {
+      border-color: rgba(192, 132, 252, 0.35);
+      color: #C084FC;
+    }
+
+    .chip-green {
+      border-color: rgba(52, 211, 153, 0.35);
+      color: #34D399;
+    }
+
+    .chip-amber {
+      border-color: rgba(251, 191, 36, 0.35);
+      color: #FBBF24;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      padding: 0 80px;
+      width: 100%;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-cyan {
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .card-purple {
+      border-color: rgba(192, 132, 252, 0.35);
+    }
+
+    .card-emerald {
+      border-color: rgba(52, 211, 153, 0.35);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .icon-cyan {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .icon-purple {
+      background: rgba(192, 132, 252, 0.15);
+      color: #C084FC;
+      border: 1px solid rgba(192, 132, 252, 0.3);
+    }
+
+    .icon-emerald {
+      background: rgba(52, 211, 153, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .card-title-group h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin-bottom: 4px;
+    }
+
+    .card-title-group p {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .card-items {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .item-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-cyan { color: #38BDF8; }
+    .color-purple { color: #C084FC; }
+    .color-emerald { color: #34D399; }
+
+    .item-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #94A3B8;
+    }
+
+    /* Footer */
+    .footer-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      color: #64748B;
+      text-transform: uppercase;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow & Grid -->
+  <div class="bg-grid"></div>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+  <div class="ambient-glow-3"></div>
+
+  <!-- Header -->
+  <div class="header-container">
+    <div class="badge-pill">
+      <div class="status-dot"></div>
+      <span class="badge-text">Autonomous AI-COS v1.0.0</span>
+      <span class="badge-highlight">Enterprise Fleet</span>
+    </div>
+
+    <h1 class="brand-title">🧠 HIVEBrain</h1>
+    <p class="brand-subtitle">Autonomous AI Company Operating System &amp; 4-Layer Federated Meta-Brain</p>
+
+    <!-- Chips -->
+    <div class="chips-container">
+      <div class="chip chip-cyan">⚡ Non-Blocking Gateway &lt;3ms</div>
+      <div class="chip chip-purple">🏢 Paperclip AI CEO Orchestrator</div>
+      <div class="chip chip-green">🔄 Herdr 4-Lane Execution Pool</div>
+      <div class="chip chip-amber">🔬 Dual-Track Clean-Room REA</div>
+    </div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="cards-grid">
+    <!-- Card 1 -->
+    <div class="card card-cyan">
+      <div class="card-header">
+        <div class="card-icon icon-cyan">⚡</div>
+        <div class="card-title-group">
+          <h3>Non-Blocking Gateway</h3>
+          <p>&lt; 3ms Instant Handoff</p>
+        </div>
+      </div>
+      <div class="card-items">
+        <div>
+          <div class="item-title color-cyan">1. Main Agent Never Blocks</div>
+          <p class="item-desc">User chats remain 100% interactive. Tasks hand off asynchronously to background fleet in sub-3ms.</p>
+        </div>
+        <div>
+          <div class="item-title color-cyan">2. Live Process DAG UI (:5174)</div>
+          <p class="item-desc">Real-time reactive node graph shows micro-task transitions, model routing, and execution telemetry.</p>
+        </div>
+        <div>
+          <div class="item-title color-cyan">3. Zero-Zombie Process Guardian</div>
+          <p class="item-desc">Watches parent PID. Reaps child daemons cleanly on IDE close, crash, or session restart.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card card-purple">
+      <div class="card-header">
+        <div class="card-icon icon-purple">🏢</div>
+        <div class="card-title-group">
+          <h3>Autonomous AI CEO</h3>
+          <p>Herdr &amp; OpenClaw Fleet</p>
+        </div>
+      </div>
+      <div class="card-items">
+        <div>
+          <div class="item-title color-purple">1. 4-Lane Parallel Execution</div>
+          <p class="item-desc">Dedicated Herdr lanes for research (Qwen 3.8), schema (GPT-6), engine code (Codex), and audits.</p>
+        </div>
+        <div>
+          <div class="item-title color-purple">2. OpenClaw Loop Breaker</div>
+          <p class="item-desc">Real-time session auditor intercepts infinite loops, repetitive actions, and context bloat.</p>
+        </div>
+        <div>
+          <div class="item-title color-purple">3. Dynamic Lane Self-Healing</div>
+          <p class="item-desc">Auto-promotes DeepSeek R1 reasoning on 429 rate limits, resuming directly from checkpoints.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card card-emerald">
+      <div class="card-header">
+        <div class="card-icon icon-emerald">🧠</div>
+        <div class="card-title-group">
+          <h3>4-Layer Federated Brain</h3>
+          <p>PostgreSQL 18 &amp; Dual REA</p>
+        </div>
+      </div>
+      <div class="card-items">
+        <div>
+          <div class="item-title color-emerald">1. Lock-Free MVCC Ledger</div>
+          <p class="item-desc">Relational SQL entities, append-only JSONB telemetry, pgvector 384d semantic memory, and Graphify.</p>
+        </div>
+        <div>
+          <div class="item-title color-emerald">2. Dual-Track Reverse Eng</div>
+          <p class="item-desc">Track 1: Chrome DevTools MCP DOM analysis. Track 2: Browser-free Go/Rust binary dissection via REA.</p>
+        </div>
+        <div>
+          <div class="item-title color-emerald">3. 5-Day Continuous Distillation</div>
+          <p class="item-desc">Background Janitor consolidates operational knowledge, pruning obsolete telemetry and noise.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-bar">
+    Multi-Model Fleet: Antigravity &middot; Codex Pro CLI &middot; DeepSeek R1 &middot; Qwen 3.8 Max &middot; GPT-6 &middot; Kimi K3
+  </div>
+
+</body>
+</html>
