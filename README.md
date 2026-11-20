@@ -52,42 +52,11 @@ Built on a non-blocking gateway architecture with sub-3ms handoffs, HIVEBrain de
 ## 🏛️ Core Architecture
 
 <p align="center">
-  <img src="assets/architecture-topology.png" alt="HIVEBrain AI-COS Architecture Topology" width="840" />
+  <img src="assets/architecture-topology.png" alt="HIVEBrain AI-COS Architecture Topology" width="100%" />
 </p>
-
-```
-+---------------------------------------------------------------------------------------------------+
-|                                  NON-BLOCKING USER GATEWAY (<3ms)                                 |
-+---------------------------------------------------------------------------------------------------+
-                                                  |  (Async Handoff)
-                                                  v
-+---------------------------------------------------------------------------------------------------+
-|                             SECOND AGENT: PAPERCLIP AI CEO ORCHESTRATOR                           |
-|       - 3-Stage Blueprint Review Gate (Adversarial Qwen Consensus)                                |
-|       - Dynamic Task Graph Decomposer & Cost Optimization Router                                  |
-+---------------------------------------------------------------------------------------------------+
-       |                                |                               |                    |
-       v                                v                                v                    v
-+--------------+                +---------------+               +---------------+    +---------------+
-| LANE RESEARCH|                |  LANE SCHEMA  |               |   LANE CODE   |    |  LANE AUDIT   |
-| (Qwen 3.8)   |                |  (GPT-6 Luna) |               |  (Codex CLI)  |    | (DeepSeek R1) |
-+--------------+                +---------------+               +---------------+    +---------------+
-       |                                |                               |                    |
-       +--------------------------------+-------------------------------+--------------------+
-                                                  |
-                                                  v
-+---------------------------------------------------------------------------------------------------+
-|                                 OPENCLAW SESSION SUPERVISOR & HEALER                              |
-|       - Infinite Loop Breaker (3-Action Threshold)      - Context Window Bloat Trap               |
-|       - Automatic 429 Model Swapper (Backup Promotion)   - Zero-Zombie Process Guardian            |
-+---------------------------------------------------------------------------------------------------+
-                                                  |
-                                                  v
-+---------------------------------------------------------------------------------------------------+
-|                               4-LAYER FEDERATED HIVEBRAIN LEDGER                                  |
-|  [Layer 1: Relational SQL]   [Layer 2: JSONB Events]   [Layer 3: pgvector 384d]  [Layer 4: Graph] |
-+---------------------------------------------------------------------------------------------------+
-```
+<p align="center">
+  <em>Figure 1: Full-system topology showing Non-Blocking Gateway (&lt;3ms handoff), Paperclip AI CEO, Herdr 4-Lane Fleet, and 4-Layer Federated Ledger. Available as native vector design in <a href="design/AI_COS_Master_Architecture.figcraft">design/AI_COS_Master_Architecture.figcraft</a>.</em>
+</p>
 
 ---
 

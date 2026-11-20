@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HIVEBrain Non-Blocking Gateway & Master Architecture</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1600px;
+      height: 1020px;
+      overflow: hidden;
+      background-color: #070A14;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      user-select: none;
+      padding: 40px 60px;
+    }
+
+    /* Ambient Lighting Background */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 50%, transparent 95%);
+    }
+
+    .ambient-glow-1 {
+      position: absolute;
+      top: -100px;
+      left: 20%;
+      width: 650px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .ambient-glow-2 {
+      position: absolute;
+      bottom: -100px;
+      right: 20%;
+      width: 700px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, transparent 70%);
+      filter: blur(90px);
+      pointer-events: none;
+    }
+
+    /* Header Bar */
+    .header-bar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284C7 0%, #6366F1 50%, #A855F7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+
+    .brand-title-text h2 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 60%, #94A3B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title-text p {
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748B;
+    }
+
+    .live-indicator-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 18px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      backdrop-filter: blur(12px);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+    }
+
+    .telemetry-link {
+      color: #38BDF8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Main Topology Flow */
+    .topology-flow {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: 100%;
+    }
+
+    /* Layer 1: Gateway Box */
+    .gateway-card {
+      background: linear-gradient(90deg, rgba(14, 165, 233, 0.12) 0%, rgba(30, 41, 59, 0.85) 30%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.5);
+      border-radius: 16px;
+      padding: 18px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      position: relative;
+    }
+
+    .gateway-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .gateway-badge {
+      padding: 6px 12px;
+      background: #0284C7;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
+    }
+
+    .gateway-heading h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gateway-heading p {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-top: 3px;
+    }
+
+    .latency-meter {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 12px;
+      padding: 10px 18px;
+    }
+
+    .latency-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 800;
+      color: #34D399;
+      text-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
+    }
+
+    .latency-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #64748B;
+      line-height: 1.3;
+    }
+
+    /* Flow Connectors */
+    .connector-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      height: 16px;
+    }
+
+    .flow-line {
+      width: 2px;
+      height: 16px;
+      background: linear-gradient(180deg, #38BDF8, #818CF8);
+    }
+
+    /* Layer 2: AI CEO */
+    .ceo-card {
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(30, 41, 59, 0.85) 30%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(129, 140, 248, 0.4);
+      border-radius: 16px;
+      padding: 20px 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ceo-badge {
+      padding: 6px 12px;
+      background: #4F46E5;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
+    }
+
+    .ceo-desc h3 {
+      font-size: 19px;
+      font-weight: 800;
+      color: #F8FAFC;
+    }
+
+    .ceo-features {
+      display: flex;
+      gap: 20px;
+      margin-top: 6px;
+      font-size: 13px;
+      color: #94A3B8;
+    }
+
+    .ceo-feat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bullet-purple { color: #A855F7; }
+
+    .routing-pill {
+      background: #1E1B4B;
+      border: 1px solid rgba(129, 140, 248, 0.35);
+      border-radius: 10px;
+      padding: 8px 16px;
+      text-align: right;
+    }
+
+    .routing-pill-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #A5B4FC;
+    }
+
+    .routing-pill-sub {
+      font-size: 12px;
+      font-weight: 600;
+      color: #CBD5E1;
+      margin-top: 2px;
+    }
+
+    /* Layer 3: Two Columns - Herdr Fleet (4 Lanes) + OpenClaw */
+    .mid-row {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 20px;
+    }
+
+    .fleet-card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(52, 211, 153, 0.35);
+      border-radius: 16px;
+      padding: 18px 24px;
+      backdrop-filter: blur(16px);
+    }
+
+    .subcard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .subcard-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-green { color: #34D399; }
+    .title-amber { color: #FBBF24; }
+
+    /* 4 Lanes Grid */
+    .lanes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .lane-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lane-box-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #38BDF8;
+    }
+
+    .lane-box-model {
+      font-size: 12px;
+      font-weight: 600;
+      color: #F1F5F9;
+    }
+
+    .lane-box-status {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #10B981;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .dot-green {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+
+    /* OpenClaw Card */
+    .openclaw-card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(251, 191, 36, 0.35);
+      border-radius: 16px;
+      padding: 18px 24px;
+      backdrop-filter: blur(16px);
+    }
+
+    .supervisor-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .supervisor-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #CBD5E1;
+    }
+
+    .item-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(251, 191, 36, 0.15);
+      color: #FBBF24;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    /* Layer 4: Metastore */
+    .store-card {
+      background: linear-gradient(90deg, rgba(168, 85, 247, 0.12) 0%, rgba(30, 41, 59, 0.85) 30%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(168, 85, 247, 0.4);
+      border-radius: 16px;
+      padding: 18px 24px;
+      backdrop-filter: blur(16px);
+    }
+
+    .store-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .store-layer-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .store-layer-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .store-layer-desc {
+      font-size: 11px;
+      color: #94A3B8;
+      line-height: 1.4;
+    }
+
+    .color-l1 { color: #38BDF8; }
+    .color-l2 { color: #C084FC; }
+    .color-l3 { color: #34D399; }
+    .color-l4 { color: #FBBF24; }
+
+    /* Footer Meta */
+    .bottom-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #64748B;
+      margin-top: 10px;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow -->
+  <div class="bg-grid"></div>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Header -->
+  <div class="header-bar">
+    <div class="brand-group">
+      <div class="brand-icon">🧠</div>
+      <div class="brand-title-text">
+        <h2>HIVEBrain AI-COS: Master System Architecture</h2>
+        <p>Non-Blocking Gateway &middot; Autonomous AI CEO Fleet &middot; 4-Layer Federated Memory (v1.0.0)</p>
+      </div>
+    </div>
+    <div class="live-indicator-pill">
+      <div class="pulse-dot"></div>
+      <span>Sim Live Process Viewer:</span>
+      <span class="telemetry-link">http://localhost:5174/</span>
+    </div>
+  </div>
+
+  <!-- Topology Flow -->
+  <div class="topology-flow">
+
+    <!-- 1. Gateway Card -->
+    <div class="gateway-card">
+      <div class="gateway-left">
+        <div class="gateway-badge">Main Agent</div>
+        <div class="gateway-heading">
+          <h3>⚡ Non-Blocking User Gateway Layer</h3>
+          <p>Instant fingerprinting &amp; task enqueuing. User chats remain 100% responsive without blocking on fleet tasks.</p>
+        </div>
+      </div>
+      <div class="latency-meter">
+        <div class="latency-val">&lt; 2.74ms</div>
+        <div class="latency-label">
+          Handoff<br/>Latency
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="connector-row">
+      <div class="flow-line"></div>
+    </div>
+
+    <!-- 2. AI CEO Orchestrator -->
+    <div class="ceo-card">
+      <div style="display:flex; align-items:center; gap:20px;">
+        <div class="ceo-badge">Second Agent</div>
+        <div class="ceo-desc">
+          <h3>🏢 Paperclip AI CEO: Autonomous Fleet Orchestrator</h3>
+          <div class="ceo-features">
+            <div class="ceo-feat-item"><span class="bullet-purple">●</span> 3-Stage Blueprint Review Gate</div>
+            <div class="ceo-feat-item"><span class="bullet-purple">●</span> Dynamic DAG Micro-Task Decomposer</div>
+            <div class="ceo-feat-item"><span class="bullet-purple">●</span> Paperclip GHO-56/57 Issue Sync</div>
+          </div>
+        </div>
+      </div>
+      <div class="routing-pill">
+        <div class="routing-pill-title">Routing Heuristics</div>
+        <div class="routing-pill-sub">Tier 1 (Free First) &rarr; Tier 2 (DeepSeek) &rarr; Codex</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="connector-row">
+      <div class="flow-line"></div>
+    </div>
+
+    <!-- 3. Mid Row: Fleet Lanes + OpenClaw -->
+    <div class="mid-row">
+      <!-- 4 Lanes -->
+      <div class="fleet-card">
+        <div class="subcard-header">
+          <div class="subcard-title title-green">🔄 Herdr Parallel Fleet (4 Dedicated Lanes)</div>
+          <span style="font-size:11px; color:#64748B; font-family:'JetBrains Mono'">Zero-Delay Recycling</span>
+        </div>
+        <div class="lanes-grid">
+          <div class="lane-box">
+            <div class="lane-box-name">lane_research</div>
+            <div class="lane-box-model">Qwen 3.8 Max</div>
+            <div class="lane-box-status"><div class="dot-green"></div> Active</div>
+          </div>
+          <div class="lane-box">
+            <div class="lane-box-name">lane_schema</div>
+            <div class="lane-box-model">GPT-6 Luna</div>
+            <div class="lane-box-status"><div class="dot-green"></div> Active</div>
+          </div>
+          <div class="lane-box">
+            <div class="lane-box-name">lane_code</div>
+            <div class="lane-box-model">Codex Pro CLI</div>
+            <div class="lane-box-status"><div class="dot-green"></div> Active</div>
+          </div>
+          <div class="lane-box">
+            <div class="lane-box-name">lane_audit</div>
+            <div class="lane-box-model">DeepSeek R1</div>
+            <div class="lane-box-status"><div class="dot-green"></div> Active</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OpenClaw -->
+      <div class="openclaw-card">
+        <div class="subcard-header">
+          <div class="subcard-title title-amber">🛡️ OpenClaw Supervisor &amp; Healer</div>
+          <span style="font-size:11px; color:#64748B; font-family:'JetBrains Mono'">Session Auditor</span>
+        </div>
+        <div class="supervisor-list">
+          <div class="supervisor-item">
+            <span class="item-tag">LOOP BREAKER</span>
+            <span>Traps circular action loops (&ge; 3 repeat actions)</span>
+          </div>
+          <div class="supervisor-item">
+            <span class="item-tag">LANE HEALER</span>
+            <span>Intercepts 429 rate limits &amp; auto-promotes backup models</span>
+          </div>
+          <div class="supervisor-item">
+            <span class="item-tag">GUARDIAN</span>
+            <span>Zero-zombie PID watchdog cleanly reaps background procs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="connector-row">
+      <div class="flow-line"></div>
+    </div>
+
+    <!-- 4. Metastore -->
+    <div class="store-card">
+      <div class="subcard-header">
+        <div class="subcard-title" style="color:#C084FC">🗄️ HIVEBrain 4-Layer Federated Ledger (PostgreSQL 18 &amp; Graphify)</div>
+        <span style="font-size:11px; color:#64748B; font-family:'JetBrains Mono'">Lock-Free MVCC &amp; OCC</span>
+      </div>
+      <div class="store-grid">
+        <div class="store-layer-box">
+          <div class="store-layer-title color-l1">Layer 1: Relational SQL</div>
+          <div class="store-layer-desc">ACID tasks, milestones, and total-order airline reservation locks.</div>
+        </div>
+        <div class="store-layer-box">
+          <div class="store-layer-title color-l2">Layer 2: JSONB Telemetry</div>
+          <div class="store-layer-desc">Append-only event log capturing every subtask transition and payload.</div>
+        </div>
+        <div class="store-layer-box">
+          <div class="store-layer-title color-l3">Layer 3: pgvector 384-Dim</div>
+          <div class="store-layer-desc">Semantic memory centroids with fast cosine similarity retrieval.</div>
+        </div>
+        <div class="store-layer-box">
+          <div class="store-layer-title color-l4">Layer 4: Knowledge Graph</div>
+          <div class="store-layer-desc">Graphify topological code graphs, module dependencies &amp; blast radius.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer Meta -->
+  <div class="bottom-meta">
+    <span>GhostProtocolOps / HIVEBrain</span>
+    <span>Autonomous AI Company Operating System (AI-COS) v1.0.0</span>
+  </div>
+
+</body>
+</html>
