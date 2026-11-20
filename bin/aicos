@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""
+AI-COS Command-Line Interface (aicos).
+Master control CLI for Autonomous AI Company Operating System & HIVEBrain.
+"""
+
+import os
+import sys
+import time
+import json
+import socket
+import signal
+import subprocess
+import argparse
+
+REAL_FILE = os.path.realpath(__file__)
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(REAL_FILE), "..", "src"))
+sys.path.insert(0, SRC_DIR)
+
+from guardian import ProcessGuardian
+from engine import HIVEBrainEngine
+from gateway import UserGateway
+
+def is_port_open(port: int) -> bool:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.5)
+        s.connect(("127.0.0.1", port))
+        s.close()
+        return True
+    except Exception:
+        return False
+
+def cmd_status(args):
+    print("=" * 75)
+    print("🏢 AI-COS: AUTONOMOUS AI COMPANY OPERATING SYSTEM STATUS")
+    print("=" * 75)
+    
+    # 1. Services
+    pg_ok = os.path.exists("/tmp/.s.PGSQL.5432") or is_port_open(5432)
+    tel_ok = is_port_open(5175)
+    view_ok = is_port_open(5174)
+    paper_ok = is_port_open(3100)
+    dots_ok = is_port_open(4310)
+    claw_ok = is_port_open(18789)
+
+    print("Master Services:")
+    print(f"  • PostgreSQL 18 (:5432)     : {'🟢 ONLINE' if pg_ok else '🔴 DOWN'}")
+    print(f"  • Telemetry SSE (:5175)     : {'🟢 ONLINE' if tel_ok else '🔴 DOWN'}")
+    print(f"  • Live Viewer UI (:5174)    : {'🟢 ONLINE' if view_ok else '🔴 DOWN'}")
+    print(f"  • Paperclip Board (:3100)   : {'🟢 ONLINE' if paper_ok else '🔴 DOWN'}")
+    print(f"  • OpenDots Wiki (:4310)     : {'🟢 ONLINE' if dots_ok else '🔴 DOWN'}")
+    print(f"  • OpenClaw Gateway (:18789) : {'🟢 ONLINE' if claw_ok else '🔴 DOWN'}")
+
+    # 2. Daemon
+    daemon_proc = subprocess.run(["pgrep", "-f", "HIVEBrain/src/daemon.py"], capture_output=True, text=True)
+    d_pid = daemon_proc.stdout.strip()
+    print(f"  • Continuous Daemon         : {'🟢 ACTIVE (PID: ' + d_pid + ')' if d_pid else '🔴 STOPPED'}")
+
+    # 3. HIVEBrain Engine
+    try:
+        engine = HIVEBrainEngine()
+        status = engine.status()
+        layers = status.get("layers", {})
+        print("\nHIVEBrain 4-Layer Database Topology:")
+        for layer_name, info in layers.items():
+            print(f"  • {layer_name:<20}: {info.get('records', 0)} records ({info.get('status')})")
+        fleet = status.get("fleet", {})
+        print(f"\nHerdr Execution Fleet: {fleet.get('total_lanes', 4)} lanes ({fleet.get('idle_lanes', 4)} idle, {fleet.get('busy_lanes', 0)} busy)")
+    except Exception as e:
+        print(f"\nHIVEBrain Engine Check: ⚠️ {e}")
+
+    print("=" * 75)
+
+def cmd_start(args):
+    print("Starting AI-COS Master Services...")
+    guardian = ProcessGuardian()
+    guardian.ensure_services_running()
+    print("✔ Telemetry Server (5175), Viewer UI (5174), and Daemon verified.")
+    print("Dashboard available at: http://localhost:5174/")
+
+def cmd_stop(args):
+    print("Stopping AI-COS Managed Services...")
+    subprocess.run(["pkill", "-f", "sim-live-process-viewer/server/telemetry_server.py"])
+    subprocess.run(["pkill", "-f", "HIVEBrain/src/daemon.py"])
+    print("✔ Telemetry server and background daemon terminated.")
+
+def cmd_run(args):
+    prompt = " ".join(args.prompt)
+    gw = UserGateway()
+    res = gw.submit_request(prompt)
+    print("⚡ Non-Blocking Gateway Response:")
+    print(json.dumps(res, indent=2))
+    print(f"Track live execution on: {res.get('viewer_url')}")
+
+def cmd_mcp(args):
+    from hivebrain_mcp import main as mcp_main
+    mcp_main()
+
+def cmd_test(args):
+    test_path = os.path.abspath(os.path.join(os.path.dirname(REAL_FILE), "..", "tests", "test_ai_company_operating_system.py"))
+    subprocess.run([sys.executable, test_path])
+
+def main():
+    parser = argparse.ArgumentParser(description="AI-COS Command-Line Interface")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    subparsers.add_parser("status", help="Show system, database, and fleet status")
+    subparsers.add_parser("start", help="Start all AI-COS background services")
+    subparsers.add_parser("stop", help="Stop all AI-COS background services")
+    subparsers.add_parser("mcp", help="Run stdio JSON-RPC MCP server with guardian watchdog")
+    subparsers.add_parser("test", help="Run full integration test suite")
+
+    run_parser = subparsers.add_parser("run", help="Dispatch a task through the non-blocking gateway")
+    run_parser.add_argument("prompt", nargs="+", help="Objective or task to execute")
+
+    args = parser.parse_args()
+    if args.command == "status":
+        cmd_status(args)
+    elif args.command == "start":
+        cmd_start(args)
+    elif args.command == "stop":
+        cmd_stop(args)
+    elif args.command == "run":
+        cmd_run(args)
+    elif args.command == "mcp":
+        cmd_mcp(args)
+    elif args.command == "test":
+        cmd_test(args)
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
